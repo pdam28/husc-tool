@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Đăng ký Tín chỉ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+         :root {
+            --light-primary: #0d6efd;
+            --light-primary-hover: #0b5ed7;
+            --light-success: #198754;
+            --light-error: #dc3545;
+            --light-bg: #f8f9fa;
+            --light-surface: #ffffff;
+            --light-border: #ced4da;
+            --light-text: #212529;
+            --light-text-secondary: #6c757d;
+            --dark-primary: #3b82f6;
+            --dark-primary-hover: #2563eb;
+            --dark-success: #22c55e;
+            --dark-error: #ef4444;
+            --dark-bg: #111827;
+            --dark-surface: #1f2937;
+            --dark-border: #4b5563;
+            --dark-text: #f9fafb;
+            --dark-text-secondary: #9ca3af;
+        }
+        
+        [data-theme="light"] {
+            --primary-color: var(--light-primary);
+            --primary-hover-color: var(--light-primary-hover);
+            --success-color: var(--light-success);
+            --error-color: var(--light-error);
+            --bg-color: var(--light-bg);
+            --surface-color: var(--light-surface);
+            --border-color: var(--light-border);
+            --text-color: var(--light-text);
+            --text-secondary-color: var(--light-text-secondary);
+        }
+        
+        [data-theme="dark"] {
+            --primary-color: var(--dark-primary);
+            --primary-hover-color: var(--dark-primary-hover);
+            --success-color: var(--dark-success);
+            --error-color: var(--dark-error);
+            --bg-color: var(--dark-bg);
+            --surface-color: var(--dark-surface);
+            --border-color: var(--dark-border);
+            --text-color: var(--dark-text);
+            --text-secondary-color: var(--dark-text-secondary);
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .container {
+            background: var(--surface-color);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+            transition: background-color 0.3s;
+        }
+        
+        .view {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .view.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--text-color);
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header-container {
+            position: relative;
+        }
+        
+        .theme-switcher {
+            position: absolute;
+            top: -30px;
+            right: -20px;
+        }
+        
+        #theme-toggle {
+            cursor: pointer;
+            font-size: 24px;
+        }
+        
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 33.33%;
+            z-index: 1;
+        }
+        
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            color: var(--surface-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .step-label {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-secondary-color);
+            font-weight: 500;
+        }
+        
+        .step.active .step-icon {
+            background-color: var(--primary-color);
+        }
+        
+        .step.completed .step-icon {
+            background-color: var(--success-color);
+        }
+        
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15%;
+            right: 15%;
+            height: 2px;
+            background-color: var(--border-color);
+            z-index: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary-color);
+            font-size: 14px;
+        }
+        
+        input,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 25%, transparent);
+        }
+        
+        #password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 42px;
+            cursor: pointer;
+            color: var(--text-secondary-color);
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button:hover:not(:disabled) {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background-color: color-mix(in srgb, var(--primary-color) 50%, #808080);
+            cursor: not-allowed;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        
+        button.loading .spinner {
+            display: block;
+        }
+        
+        button.loading .btn-text {
+            display: none;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        #captcha-image {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-width: 220px;
+            margin: 15px 0;
+        }
+        
+        #welcome-message {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.5;
+            font-size: 15px;
+            background-color: color-mix(in srgb, var(--success-color) 15%, transparent);
+            color: var(--success-color);
+            border: 1px solid color-mix(in srgb, var(--success-color) 30%, transparent);
+        }
+        
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .toast {
+            background-color: var(--surface-color);
+            color: var(--text-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            font-size: 15px;
+            font-weight: 500;
+            border-top: 5px solid;
+            opacity: 0;
+            transform: translateY(100%);
+            animation: slideUp 0.5s forwards;
+            min-width: 320px;
+            text-align: center;
+        }
+        
+        .toast.success {
+            border-color: var(--success-color);
+        }
+        
+        .toast.error {
+            border-color: var(--error-color);
+        }
+        
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideDown {
+            to {
+                opacity: 0;
+                transform: translateY(100%);
+            }
+        }
+        
+        .course-list-manager {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .course-list-manager select {
+            flex-grow: 1;
+        }
+        
+        .course-list-manager button {
+            width: auto;
+            padding: 0 12px;
+            margin-top: 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1>Tool Đăng ký Tín chỉ</h1>
+            <div class="theme-switcher">
+                <span id="theme-toggle">☀️</span>
+            </div>
+        </div>
+
+        <div class="steps">
+            <div class="step active" id="step-1">
+                <div class="step-icon">1</div>
+                <div class="step-label">Đăng nhập</div>
+            </div>
+            <div class="step" id="step-2">
+                <div class="step-icon">2</div>
+                <div class="step-label">Chọn Lớp</div>
+            </div>
+            <div class="step" id="step-3">
+                <div class="step-icon">3</div>
+                <div class="step-label">Xác nhận</div>
+            </div>
+        </div>
+
+        <div id="login-view" class="view active">
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="university">Chọn trường của bạn</label>
+                    <select id="university">
+                        <option value="https://student.husc.edu.vn/">Trường Đại học Khoa Học Huế</option>
+                        <option value="https://student.huflis.edu.vn/">Trường Đại học Ngoại Ngữ Huế</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="username">Mã sinh viên</label>
+                    <input type="text" id="username" placeholder="Nhập mã sinh viên" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <input type="password" id="password" placeholder="Nhập mật khẩu" required>
+                    <span id="password-toggle">👁️</span>
+                </div>
+                <button type="submit" id="loginButton"><span class="spinner"></span><span class="btn-text">Đăng nhập</span></button>
+            </form>
+        </div>
+
+        <div id="course-view" class="view">
+            <div id="welcome-message" style="margin-bottom: 20px;"></div>
+            <form id="courseForm">
+                <div class="form-group">
+                    <label for="savedCourses">Chọn lớp đã lưu hoặc nhập mới</label>
+                    <div class="course-list-manager">
+                        <select id="savedCourses"></select>
+                        <button type="button" id="deleteCourseBtn" style="background-color: var(--error-color);">&#128465;</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="courseId">Mã lớp học phần</label>
+                    <input type="text" id="courseId" placeholder="Nhập mã lớp tại đây" required>
+                </div>
+                <button type="button" id="addCourseBtn" style="background-color: var(--success-color); margin-bottom: 10px;">Thêm vào danh sách</button>
+                <button type="submit" id="getCaptchaButton"><span class="spinner"></span><span class="btn-text">Lấy CAPTCHA</span></button>
+            </form>
+        </div>
+
+        <div id="captcha-view" class="view">
+            <form id="captchaForm" style="text-align: center;">
+                <p style="font-weight: 600; color: var(--text-secondary-color);">Vui lòng nhập mã xác nhận</p>
+                <img id="captcha-image" src="" alt="Ảnh CAPTCHA">
+                <div class="form-group">
+                    <input type="text" id="captchaText" placeholder="Nhập mã tại đây" required autocomplete="off">
+                </div>
+                <button id="reloadCaptchaBtn" type="button" style="background-color: var(--text-secondary-color); margin-bottom: 10px;"><span class="spinner"></span><span class="btn-text">Tải lại CAPTCHA</span></button>
+                <button type="submit" id="submitButton"><span class="spinner"></span><span class="btn-text">Hoàn tất Đăng ký</span></button>
+            </form>
+        </div>
+    </div>
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        // --- DOM Elements ---
+        const views = document.querySelectorAll('.view');
+        const steps = document.querySelectorAll('.step');
+        const toastContainer = document.getElementById('toast-container');
+        const themeToggle = document.getElementById('theme-toggle');
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('password-toggle');
+        const savedCoursesSelect = document.getElementById('savedCourses');
+        const courseIdInput = document.getElementById('courseId');
+        const addCourseBtn = document.getElementById('addCourseBtn');
+        const deleteCourseBtn = document.getElementById('deleteCourseBtn');
+
+        // --- Helper Functions ---
+        const switchView = (viewId) => {
+            views.forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            updateStepIndicator(viewId);
+        };
+
+        const toggleButtonLoading = (btn, isLoading) => {
+            btn.disabled = isLoading;
+            btn.classList.toggle('loading', isLoading);
+        };
+
+        const showToast = (message, type = 'success') => {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideDown 0.5s forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        };
+
+        const updateStepIndicator = (activeViewId) => {
+            let activeStep = 1;
+            if (activeViewId === 'course-view') activeStep = 2;
+            if (activeViewId === 'captcha-view') activeStep = 3;
+
+            steps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index < activeStep - 1) {
+                    step.classList.add('completed');
+                } else if (index === activeStep - 1) {
+                    step.classList.add('active');
+                }
+            });
+        };
+
+        // --- Feature: Dark Mode ---
+        const applyTheme = (theme) => {
+            document.body.setAttribute('data-theme', theme);
+            themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+            localStorage.setItem('theme', theme);
+        };
+        themeToggle.addEventListener('click', () => {
+            const newTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+
+        // --- Feature: Show/Hide Password ---
+        passwordToggle.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            passwordToggle.textContent = isPassword ? '🙈' : '👁️';
+        });
+
+        // --- Feature: Saved Courses ---
+        const loadCourses = () => {
+            const courses = JSON.parse(localStorage.getItem('savedCourses')) || [];
+            savedCoursesSelect.innerHTML = '<option value="">-- Chọn từ danh sách --</option>';
+            courses.forEach(course => {
+                const option = new Option(course, course);
+                savedCoursesSelect.add(option);
+            });
+        };
+        addCourseBtn.addEventListener('click', () => {
+            const newCourse = courseIdInput.value.trim();
+            if (!newCourse) return showToast('Vui lòng nhập mã lớp học phần.', 'error');
+            let courses = JSON.parse(localStorage.getItem('savedCourses')) || [];
+            if (!courses.includes(newCourse)) {
+                courses.push(newCourse);
+                localStorage.setItem('savedCourses', JSON.stringify(courses));
+                loadCourses();
+                showToast('Đã thêm lớp vào danh sách.');
+            } else {
+                showToast('Lớp này đã có trong danh sách.', 'error');
+            }
+        });
+        deleteCourseBtn.addEventListener('click', () => {
+            const courseToDelete = savedCoursesSelect.value;
+            if (!courseToDelete) return showToast('Vui lòng chọn một lớp để xóa.', 'error');
+            let courses = JSON.parse(localStorage.getItem('savedCourses')) || [];
+            courses = courses.filter(c => c !== courseToDelete);
+            localStorage.setItem('savedCourses', JSON.stringify(courses));
+            loadCourses();
+            courseIdInput.value = '';
+            showToast('Đã xóa lớp khỏi danh sách.');
+        });
+        savedCoursesSelect.addEventListener('change', () => {
+            if (savedCoursesSelect.value) {
+                courseIdInput.value = savedCoursesSelect.value;
+            }
+        });
+
+        // --- Main Logic ---
+        document.getElementById('loginForm').addEventListener('submit', async(e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginButton');
+            toggleButtonLoading(btn, true);
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    baseUrl: document.getElementById('university').value,
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value
+                })
+            });
+            const result = await response.json();
+            toggleButtonLoading(btn, false);
+
+            if (result.success) {
+                showToast(`Đăng nhập thành công!`);
+                document.getElementById('welcome-message').textContent = `Chào ${result.student_name}!`;
+                switchView('course-view');
+            } else {
+                showToast(`Lỗi: ${result.message}`, 'error');
+            }
+        });
+
+        const getCaptchaAction = async() => {
+            const courseId = courseIdInput.value.trim();
+            if (!courseId) return showToast('Vui lòng nhập mã lớp học phần.', 'error');
+
+            const btn = document.getElementById('getCaptchaButton');
+            toggleButtonLoading(btn, true);
+            const response = await fetch('/get-captcha', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    courseId: courseId
+                })
+            });
+            const result = await response.json();
+            toggleButtonLoading(btn, false);
+
+            if (result.success) {
+                document.getElementById('captcha-image').src = result.captcha_image_b64;
+                switchView('captcha-view');
+                document.getElementById('captchaText').value = '';
+                document.getElementById('captchaText').focus();
+            } else {
+                showToast(`Lỗi: ${result.message}`, 'error');
+            }
+        };
+
+        document.getElementById('courseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            getCaptchaAction();
+        });
+
+        document.getElementById('reloadCaptchaBtn').addEventListener('click', getCaptchaAction);
+
+        document.getElementById('captchaForm').addEventListener('submit', async(e) => {
+            e.preventDefault();
+            const captchaText = document.getElementById('captchaText').value.trim();
+            if (!captchaText) return showToast('Vui lòng nhập mã CAPTCHA.', 'error');
+
+            const btn = document.getElementById('submitButton');
+            toggleButtonLoading(btn, true);
+
+            const response = await fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    captchaText: captchaText
+                })
+            });
+            const result = await response.json();
+            toggleButtonLoading(btn, false);
+
+            if (result.success) {
+                showToast(`✅ THÀNH CÔNG! ${result.message}`, 'success');
+                switchView('course-view');
+            } else {
+                showToast(`❌ THẤT BẠI! ${result.message}. Đã tải lại CAPTCHA...`, 'error');
+                getCaptchaAction();
+            }
+        });
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+            loadCourses();
+            updateStepIndicator('login-view');
+        });
+    </script>
+</body>
+
+</html>
