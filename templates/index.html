@@ -216,44 +216,20 @@
             background-color: color-mix(in srgb, var(--primary-color) 50%, #808080);
             cursor: not-allowed;
         }
-        /* === CSS SỬA LỖI SPINNER === */
         
         .spinner {
             width: 20px;
             height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-top-color: #fff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             display: none;
-            /* Ẩn theo mặc định */
-        }
-        /* Spinner cho nút bấm */
-        
-        button .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            border-top-color: #fff;
         }
         
         button.loading .spinner {
             display: inline-block;
         }
-        /* Spinner cho bảng trạng thái */
-        
-        .status-cell .spinner {
-            width: 16px;
-            height: 16px;
-            border: 3px solid var(--border-color);
-            border-top-color: var(--primary-color);
-            display: inline-block;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-        
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        /* ============================ */
         
         #password-toggle {
             position: absolute;
@@ -327,22 +303,15 @@
             color: var(--error-color);
         }
         
-        .progress-bar-container {
-            width: 100%;
-            height: 10px;
-            background-color: var(--border-color);
-            border-radius: 10px;
-            margin-top: 20px;
-            overflow: hidden;
-            display: none;
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
-            width: 0%;
-            background-color: var(--success-color);
-            border-radius: 10px;
-            transition: width 0.5s ease-in-out;
+        .status-cell .spinner {
+            border-top-color: var(--primary-color);
+            border-color: var(--border-color);
+            border-top-color: var(--primary-color);
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
         }
     </style>
 </head>
@@ -416,10 +385,11 @@
                     <tbody id="registration-list"></tbody>
                 </table>
             </div>
-            <div class="progress-bar-container" id="progressBarContainer">
-                <div class="progress-bar-fill" id="progressBarFill"></div>
+            <div class="form-group" style="margin-top: 20px; display: flex; align-items: center; gap: 15px;">
+                <label for="maxRetries" style="margin-bottom: 0; white-space: nowrap;">Thử lại tối đa:</label>
+                <input type="number" id="maxRetries" value="5" min="1" style="width: 80px; padding: 8px;">
             </div>
-            <button id="submitAllBtn" style="margin-top: 20px; background-color: var(--warning-color); color: var(--text-color);"><div class="spinner"></div><span>Đăng ký tuần tự các lớp trong danh sách!</span></button>
+            <button id="submitAllBtn" style="background-color: var(--warning-color); color: var(--text-color);"><div class="spinner"></div><span>Đăng ký tuần tự các lớp trong danh sách!</span></button>
         </div>
     </div>
 
@@ -444,8 +414,6 @@
         const passwordToggle = document.getElementById('password-toggle');
         const savedCoursesSelect = document.getElementById('savedCourses');
         const deleteCourseBtn = document.getElementById('deleteCourseBtn');
-        const progressBarContainer = document.getElementById('progressBarContainer');
-        const progressBarFill = document.getElementById('progressBarFill');
 
         let courseListData = [];
 
@@ -558,50 +526,46 @@
             if (courseListData.length === 0) return alert('Danh sách rỗng, vui lòng thêm lớp cần đăng ký.');
             toggleButtonLoading(submitAllBtn, true);
 
-            progressBarContainer.style.display = 'block';
-            progressBarFill.style.width = '0%';
-
-            let processedCount = 0;
-            const totalCourses = courseListData.length;
-
-            for (const course of courseListData) {
-                const row = registrationList.querySelector(`tr[data-course-id="${course.id}"]`);
+            // Reset trạng thái trên giao diện
+            registrationList.querySelectorAll('tr').forEach(row => {
                 const statusCell = row.querySelector('.status-cell');
-
-                if (statusCell.classList.contains('success')) {
-                    processedCount++;
-                    progressBarFill.style.width = `${(processedCount / totalCourses) * 100}%`;
-                    continue;
-                }
-
-                statusCell.innerHTML = '<div class="spinner"></div><span>Đang xử lý...</span>';
+                statusCell.innerHTML = '<span>Đang chờ...</span>';
                 statusCell.className = 'status-cell';
+            });
 
-                try {
-                    const response = await fetch('/full-auto-register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            courseId: course.id
-                        })
-                    });
-                    const result = await response.json();
-                    statusCell.textContent = result.message;
-                    statusCell.classList.toggle('success', result.success);
-                    statusCell.classList.toggle('error', !result.success);
-                } catch (error) {
-                    statusCell.textContent = "Lỗi kết nối";
-                    statusCell.classList.add('error');
-                }
+            const maxRetries = parseInt(document.getElementById('maxRetries').value, 10) || 1;
 
-                processedCount++;
-                progressBarFill.style.width = `${(processedCount / totalCourses) * 100}%`;
+            try {
+                const response = await fetch('/register-sequentially', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        courseList: courseListData.map(c => c.id),
+                        maxRetries: maxRetries
+                    })
+                });
 
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!response.ok) throw new Error(`Lỗi server: ${response.statusText}`);
+
+                const resultData = await response.json();
+
+                resultData.results.forEach(result => {
+                    const row = registrationList.querySelector(`tr[data-course-id="${result.courseId}"]`);
+                    if (row) {
+                        const statusCell = row.querySelector('.status-cell');
+                        statusCell.textContent = result.message;
+                        statusCell.classList.toggle('success', result.success);
+                        statusCell.classList.toggle('error', !result.success);
+                    }
+                });
+
+            } catch (error) {
+                alert(`Đã xảy ra lỗi nghiêm trọng: ${error.message}`);
+            } finally {
+                toggleButtonLoading(submitAllBtn, false);
             }
-            toggleButtonLoading(submitAllBtn, false);
         });
 
         document.addEventListener('DOMContentLoaded', () => {

@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import base64
 from flask import Flask, render_template, request, jsonify, session
 import os
+import time
 
 # --- Class để làm việc với API anticaptcha.top ---
 class AnticaptchaTopApi:
@@ -27,7 +28,7 @@ class AnticaptchaTopApi:
 
 # --- Cấu hình Flask ---
 app = Flask(__name__)
-app.secret_key = 'a-very-very-secret-key-for-sequential-registration' 
+app.secret_key = 'a-secret-key-for-backend-loop' 
 
 # --- Hàm đăng nhập ---
 def do_login(req_session, base_url, username, password):
@@ -74,73 +75,88 @@ def handle_login():
     else:
         return jsonify({"success": False, "message": message})
 
-@app.route("/full-auto-register", methods=['POST'])
-def full_auto_register():
+@app.route("/register-sequentially", methods=['POST'])
+def handle_sequential_registration():
     if 'husc_cookies' not in session or 'api_key' not in session:
-        return jsonify({"success": False, "message": "Phiên đăng nhập hoặc API Key đã hết hạn. Vui lòng đăng nhập lại."})
+        return jsonify({"success": False, "message": "Phiên đăng nhập đã hết hạn."})
 
     data = request.json
-    course_id = data.get('courseId')
+    course_list = data.get('courseList', [])
+    max_retries = data.get('maxRetries', 1)
     base_url = session['base_url']
     api_key = session['api_key']
 
     captcha_solver = AnticaptchaTopApi(api_key)
     req_session = requests.Session()
     req_session.cookies.update(session['husc_cookies'])
+    
+    results = []
 
-    try:
-        details_page_url = f"{base_url}Course/Details/{course_id}/"
-        registration_form_url = f"{base_url}Studying/CourseRegistration/{course_id}/"
-        form_headers = {'Referer': details_page_url, 'X-Requested-With': 'XMLHttpRequest'}
+    for course_id in course_list:
+        attempts = 0
+        success = False
+        final_message = "Chưa thử"
         
-        form_response = req_session.get(registration_form_url, headers=form_headers)
-        form_soup = BeautifulSoup(form_response.text, 'html.parser')
-        
-        reg_token_element = form_soup.select_one('#formCourseRegistration input[name="__RequestVerificationToken"]')
-        captcha_img_tag = form_soup.select_one("#formCourseRegistration img")
+        while not success and attempts < max_retries:
+            attempts += 1
+            print(f"[{course_id}] Đang thử lần {attempts}/{max_retries}...")
+            try:
+                details_page_url = f"{base_url}Course/Details/{course_id}/"
+                registration_form_url = f"{base_url}Studying/CourseRegistration/{course_id}/"
+                form_headers = {'Referer': details_page_url, 'X-Requested-With': 'XMLHttpRequest'}
+                form_response = req_session.get(registration_form_url, headers=form_headers)
+                form_soup = BeautifulSoup(form_response.text, 'html.parser')
+                
+                reg_token_element = form_soup.select_one('#formCourseRegistration input[name="__RequestVerificationToken"]')
+                captcha_img_tag = form_soup.select_one("#formCourseRegistration img")
 
-        if not reg_token_element or not captcha_img_tag:
-            error_div = form_soup.find('div', {'class': 'alert-danger'})
-            error_message = error_div.get_text(strip=True) if error_div else "Không lấy được form (Lớp đầy/trùng lịch?)."
-            return jsonify({"success": False, "message": error_message})
+                if not reg_token_element or not captcha_img_tag:
+                    error_div = form_soup.find('div', {'class': 'alert-danger'})
+                    final_message = error_div.get_text(strip=True) if error_div else "Không lấy được form (Lớp đầy/trùng lịch?)."
+                    break
 
-        reg_token = reg_token_element['value']
-        captcha_url = base_url.rstrip('/') + captcha_img_tag['src']
-        
-        captcha_response = req_session.get(captcha_url)
-        img_base64 = base64.b64encode(captcha_response.content).decode('utf-8')
+                reg_token = reg_token_element['value']
+                captcha_url = base_url.rstrip('/') + captcha_img_tag['src']
+                
+                captcha_response = req_session.get(captcha_url)
+                img_base64 = base64.b64encode(captcha_response.content).decode('utf-8')
+                solve_result = captcha_solver.solve(img_base64)
+                
+                if not solve_result or not solve_result.get('status'):
+                    final_message = f"Lần {attempts}: Lỗi giải CAPTCHA: {solve_result.get('log', 'N/A') if solve_result else 'N/A'}"
+                    time.sleep(2)
+                    continue
 
-        print(f"[{course_id}] Đang gửi CAPTCHA đến dịch vụ giải mã...")
-        solve_result = captcha_solver.solve(img_base64)
-        
-        if not solve_result or not solve_result.get('status'):
-            log_message = solve_result.get('log', 'Không có phản hồi từ dịch vụ giải mã.') if solve_result else 'Lỗi không xác định.'
-            return jsonify({"success": False, "message": f"Lỗi giải CAPTCHA: {log_message}"})
+                solved_captcha_text = solve_result['captcha']
+                
+                registration_payload = {
+                    '__RequestVerificationToken': reg_token, 'courseId': course_id, 'captcha': solved_captcha_text,
+                }
+                final_headers = {'Referer': details_page_url, 'Origin': base_url.rstrip('/'), 'X-Requested-With': 'XMLHttpRequest'}
+                
+                final_response = req_session.post(base_url + "studying/CourseRegistration", data=registration_payload, headers=final_headers)
+                result_json = final_response.json()
+                
+                if result_json.get('Code') == 1:
+                    success = True
+                    final_message = result_json.get('Msg', 'Thành công!')
+                    session['husc_cookies'] = requests.utils.dict_from_cookiejar(req_session.cookies)
+                    session.modified = True
+                else:
+                    final_message = f"Lần {attempts}: {result_json.get('Msg', 'Lỗi không rõ')}"
+                    if "đầy" in final_message or "trùng lịch" in final_message:
+                        break
+                    time.sleep(2)
 
-        solved_captcha_text = solve_result['captcha']
-        print(f"[{course_id}] Giải mã thành công: {solved_captcha_text}")
+            except Exception as e:
+                final_message = f"Lần {attempts}: Lỗi hệ thống: {e}"
+                time.sleep(2)
 
-        registration_payload = {
-            '__RequestVerificationToken': reg_token,
-            'courseId': course_id,
-            'captcha': solved_captcha_text,
-        }
-        final_headers = {'Referer': details_page_url, 'Origin': base_url.rstrip('/'), 'X-Requested-With': 'XMLHttpRequest'}
-        
-        print(f"[{course_id}] Đang gửi yêu cầu đăng ký cuối cùng...")
-        final_response = req_session.post(base_url + "studying/CourseRegistration", data=registration_payload, headers=final_headers)
-        result_json = final_response.json()
-        
-        # === NÂNG CẤP QUAN TRỌNG: Cập nhật lại cookie sau mỗi lần POST ===
-        if result_json.get('Code') == 1:
-             session['husc_cookies'] = requests.utils.dict_from_cookiejar(req_session.cookies)
-             session.modified = True # Đánh dấu session đã thay đổi để Flask lưu lại
-        # =================================================================
+        results.append({"courseId": course_id, "success": success, "message": final_message})
+        # Thêm độ trễ giữa các môn học khác nhau
+        time.sleep(1)
 
-        return jsonify({"success": result_json.get('Code') == 1, "message": result_json.get('Msg', 'Không có phản hồi.')})
-
-    except Exception as e:
-        return jsonify({"success": False, "message": f"Lỗi hệ thống: {e}"})
+    return jsonify({"results": results})
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
