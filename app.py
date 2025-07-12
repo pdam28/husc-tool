@@ -15,7 +15,6 @@ class AnticaptchaTopApi:
     def solve(self, img_base64, captcha_type=1):
         payload = {'apikey': self.api_key, 'type': captcha_type, 'img': img_base64}
         try:
-            # Tăng thời gian chờ lên 60 giây vì giải CAPTCHA có thể lâu
             response = requests.post(self.api_url, data=payload, timeout=60)
             response.raise_for_status()
             result_json = response.json()
@@ -28,7 +27,7 @@ class AnticaptchaTopApi:
 
 # --- Cấu hình Flask ---
 app = Flask(__name__)
-app.secret_key = 'a-very-simple-and-secret-key' 
+app.secret_key = 'a-very-very-secret-key-for-sequential-registration' 
 
 # --- Hàm đăng nhập ---
 def do_login(req_session, base_url, username, password):
@@ -90,7 +89,6 @@ def full_auto_register():
     req_session.cookies.update(session['husc_cookies'])
 
     try:
-        # 1. Lấy form đăng ký
         details_page_url = f"{base_url}Course/Details/{course_id}/"
         registration_form_url = f"{base_url}Studying/CourseRegistration/{course_id}/"
         form_headers = {'Referer': details_page_url, 'X-Requested-With': 'XMLHttpRequest'}
@@ -109,7 +107,6 @@ def full_auto_register():
         reg_token = reg_token_element['value']
         captcha_url = base_url.rstrip('/') + captcha_img_tag['src']
         
-        # 2. Tải và giải CAPTCHA
         captcha_response = req_session.get(captcha_url)
         img_base64 = base64.b64encode(captcha_response.content).decode('utf-8')
 
@@ -123,7 +120,6 @@ def full_auto_register():
         solved_captcha_text = solve_result['captcha']
         print(f"[{course_id}] Giải mã thành công: {solved_captcha_text}")
 
-        # 3. Gửi đăng ký
         registration_payload = {
             '__RequestVerificationToken': reg_token,
             'courseId': course_id,
@@ -135,6 +131,12 @@ def full_auto_register():
         final_response = req_session.post(base_url + "studying/CourseRegistration", data=registration_payload, headers=final_headers)
         result_json = final_response.json()
         
+        # === NÂNG CẤP QUAN TRỌNG: Cập nhật lại cookie sau mỗi lần POST ===
+        if result_json.get('Code') == 1:
+             session['husc_cookies'] = requests.utils.dict_from_cookiejar(req_session.cookies)
+             session.modified = True # Đánh dấu session đã thay đổi để Flask lưu lại
+        # =================================================================
+
         return jsonify({"success": result_json.get('Code') == 1, "message": result_json.get('Msg', 'Không có phản hồi.')})
 
     except Exception as e:

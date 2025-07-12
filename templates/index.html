@@ -14,15 +14,17 @@
             --light-primary-hover: #0b5ed7;
             --light-success: #198754;
             --light-error: #dc3545;
+            --light-warning: #ffc107;
             --light-bg: #f8f9fa;
             --light-surface: #ffffff;
-            --light-border: #ced4da;
+            --light-border: #dee2e6;
             --light-text: #212529;
             --light-text-secondary: #6c757d;
             --dark-primary: #3b82f6;
             --dark-primary-hover: #2563eb;
             --dark-success: #22c55e;
             --dark-error: #ef4444;
+            --dark-warning: #f59e0b;
             --dark-bg: #111827;
             --dark-surface: #1f2937;
             --dark-border: #4b5563;
@@ -35,6 +37,7 @@
             --primary-hover-color: var(--light-primary-hover);
             --success-color: var(--light-success);
             --error-color: var(--light-error);
+            --warning-color: var(--light-warning);
             --bg-color: var(--light-bg);
             --surface-color: var(--light-surface);
             --border-color: var(--light-border);
@@ -47,6 +50,7 @@
             --primary-hover-color: var(--dark-primary-hover);
             --success-color: var(--dark-success);
             --error-color: var(--dark-error);
+            --warning-color: var(--dark-warning);
             --bg-color: var(--dark-bg);
             --surface-color: var(--dark-surface);
             --border-color: var(--dark-border);
@@ -63,61 +67,53 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             padding: 20px;
             transition: background-color 0.3s, color 0.3s;
         }
         
         .container {
             background: var(--surface-color);
-            padding: 40px;
+            padding: 30px 40px;
             border-radius: 16px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 500px;
-            overflow: hidden;
-            transition: background-color 0.3s;
+            max-width: 800px;
+            margin: 20px auto;
         }
         
         .view {
             display: none;
-            animation: fadeIn 0.5s ease;
         }
         
         .view.active {
             display: block;
+            animation: fadeIn 0.5s;
         }
         
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
             }
         }
         
         h1 {
             text-align: center;
-            color: var(--text-color);
-            font-size: 28px;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-top: 0;
         }
         
         .header-container {
             position: relative;
+            margin-bottom: 20px;
         }
         
         .theme-switcher {
             position: absolute;
-            top: -30px;
-            right: -20px;
+            top: -15px;
+            right: -25px;
         }
         
         #theme-toggle {
@@ -127,7 +123,7 @@
         
         .steps {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             margin-bottom: 30px;
             position: relative;
         }
@@ -180,7 +176,7 @@
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             position: relative;
         }
         
@@ -193,23 +189,71 @@
         }
         
         input,
-        select {
+        select,
+        button {
             width: 100%;
-            padding: 12px 15px;
+            padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 8px;
             font-size: 16px;
             background-color: var(--bg-color);
             color: var(--text-color);
-            transition: border-color 0.3s, box-shadow 0.3s;
         }
         
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 25%, transparent);
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s;
         }
+        
+        button:disabled {
+            background-color: color-mix(in srgb, var(--primary-color) 50%, #808080);
+            cursor: not-allowed;
+        }
+        /* === CSS SỬA LỖI SPINNER === */
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            /* Ẩn theo mặc định */
+        }
+        /* Spinner cho nút bấm */
+        
+        button .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            border-top-color: #fff;
+        }
+        
+        button.loading .spinner {
+            display: inline-block;
+        }
+        /* Spinner cho bảng trạng thái */
+        
+        .status-cell .spinner {
+            width: 16px;
+            height: 16px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        /* ============================ */
         
         #password-toggle {
             position: absolute;
@@ -220,193 +264,193 @@
             user-select: none;
         }
         
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            margin-top: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        button:hover:not(:disabled) {
-            background-color: var(--primary-hover-color);
-            transform: translateY(-2px);
-        }
-        
-        button:disabled {
-            background-color: color-mix(in srgb, var(--primary-color) 50%, #808080);
-            cursor: not-allowed;
-        }
-        
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: none;
-        }
-        
-        button.loading .spinner {
-            display: block;
-        }
-        
-        button.loading .btn-text {
-            display: none;
-        }
-        
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        
         #welcome-message {
-            padding: 15px;
-            border-radius: 8px;
             text-align: center;
-            font-weight: 500;
-            line-height: 1.5;
-            font-size: 15px;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
             background-color: color-mix(in srgb, var(--success-color) 15%, transparent);
             color: var(--success-color);
-            border: 1px solid color-mix(in srgb, var(--success-color) 30%, transparent);
         }
         
-        .toast-container {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1050;
+        .course-list-manager {
             display: flex;
-            flex-direction: column;
-            align-items: center;
             gap: 10px;
+            margin-bottom: 10px;
         }
         
-        .toast {
-            background-color: var(--surface-color);
-            color: var(--text-color);
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            font-size: 15px;
-            font-weight: 500;
-            border-top: 5px solid;
-            opacity: 0;
-            transform: translateY(100%);
-            animation: slideUp 0.5s forwards;
-            min-width: 320px;
-            text-align: center;
+        .course-list-manager select {
+            flex-grow: 1;
         }
         
-        .toast.success {
-            border-color: var(--success-color);
+        .course-list-manager button {
+            width: auto;
+            padding: 0 12px;
+            font-size: 14px;
         }
         
-        .toast.error {
-            border-color: var(--error-color);
+        #registration-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            table-layout: fixed;
         }
         
-        @keyframes slideUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        #registration-table th,
+        #registration-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
         }
         
-        @keyframes slideDown {
-            to {
-                opacity: 0;
-                transform: translateY(100%);
-            }
+        #registration-table th {
+            font-weight: 600;
+        }
+        
+        #registration-table td {
+            vertical-align: middle;
+            word-wrap: break-word;
+        }
+        
+        .status-cell {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .status-cell.success {
+            color: var(--success-color);
+        }
+        
+        .status-cell.error {
+            color: var(--error-color);
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: var(--border-color);
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--success-color);
+            border-radius: 10px;
+            transition: width 0.5s ease-in-out;
         }
     </style>
 </head>
 
-<body data-theme="light">
+<body data-theme="dark">
     <div class="container">
-        <div class="header-container">
-            <h1>Tool Đăng ký Tín chỉ</h1>
-            <div class="theme-switcher">
-                <span id="theme-toggle">☀️</span>
-            </div>
-        </div>
-
-        <div class="steps">
-            <div class="step active" id="step-1">
-                <div class="step-icon">1</div>
-                <div class="step-label">Đăng nhập</div>
-            </div>
-            <div class="step" id="step-2">
-                <div class="step-icon">2</div>
-                <div class="step-label">Đăng ký</div>
-            </div>
-        </div>
-
+        <!-- Bước 1: View Đăng nhập -->
         <div id="login-view" class="view active">
+            <div class="header-container">
+                <h1>Tool Đăng ký Tín chỉ</h1>
+                <div class="theme-switcher"><span id="theme-toggle">🌙</span></div>
+            </div>
+            <div class="steps">
+                <div class="step active" id="step-1">
+                    <div class="step-icon">1</div>
+                    <div class="step-label">Đăng nhập</div>
+                </div>
+                <div class="step" id="step-2">
+                    <div class="step-icon">2</div>
+                    <div class="step-label">Đăng ký</div>
+                </div>
+            </div>
             <form id="loginForm">
-                <div class="form-group">
-                    <label for="university">Chọn trường của bạn</label>
-                    <select id="university">
-                        <option value="https://student.husc.edu.vn/">Trường Đại học Khoa Học Huế</option>
-                        <option value="https://student.huflis.edu.vn/">Trường Đại học Ngoại Ngữ Huế</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="username">Mã sinh viên</label>
-                    <input type="text" id="username" placeholder="Nhập mã sinh viên" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Mật khẩu</label>
-                    <input type="password" id="password" placeholder="Nhập mật khẩu" required>
-                    <span id="password-toggle">👁️</span>
-                </div>
-                <div class="form-group">
-                    <label for="apiKey">API Key (anticaptcha.top)</label>
-                    <input type="password" id="apiKey" placeholder="Dán API Key của bạn vào đây" required>
-                </div>
-                <button type="submit" id="loginButton"><span class="spinner"></span><span class="btn-text">Đăng nhập</span></button>
+                <div class="form-group"><label for="university">Chọn trường</label><select id="university"><option value="https://student.husc.edu.vn/">ĐH Khoa Học Huế</option><option value="https://student.huflis.edu.vn/">ĐH Ngoại Ngữ Huế</option></select></div>
+                <div class="form-group"><label for="username">Mã sinh viên</label><input type="text" id="username" required></div>
+                <div class="form-group"><label for="password">Mật khẩu</label><input type="password" id="password" required><span id="password-toggle">👁️</span></div>
+                <div class="form-group"><label for="apiKey">API Key (anticaptcha.top)</label><input type="password" id="apiKey" placeholder="Dán API Key của bạn vào đây" required></div>
+                <button type="submit" id="loginButton"><div class="spinner"></div><span>Đăng nhập</span></button>
             </form>
         </div>
 
-        <div id="course-view" class="view">
-            <div id="welcome-message" style="margin-bottom: 20px;"></div>
-            <form id="courseForm">
-                <div class="form-group">
-                    <label for="courseId">Nhập Mã lớp học phần</label>
-                    <input type="text" id="courseId" placeholder="Ví dụ: 2025-2026.1.LLCTTT2.011" required>
+        <!-- Bước 2: View Đăng ký nhiều môn -->
+        <div id="multi-course-view" class="view">
+            <div class="header-container">
+                <h1 id="welcome-message"></h1>
+                <div class="theme-switcher"><span class="theme-toggle-main">🌙</span></div>
+            </div>
+            <div class="steps">
+                <div class="step completed">
+                    <div class="step-icon">1</div>
+                    <div class="step-label">Đăng nhập</div>
                 </div>
-                <button type="submit" id="registerButton"><span class="spinner"></span><span class="btn-text">Đăng ký tự động</span></button>
-            </form>
+                <div class="step active">
+                    <div class="step-icon">2</div>
+                    <div class="step-label">Đăng ký</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="savedCourses">Danh sách lớp đã lưu</label>
+                <div class="course-list-manager">
+                    <select id="savedCourses"><option value="">-- Chọn lớp từ danh sách --</option></select>
+                    <button type="button" id="deleteCourseBtn" style="background-color: var(--error-color);">&#128465;</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="newCourseId">Thêm mã lớp học phần mới</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="newCourseId" placeholder="Nhập mã lớp rồi nhấn Enter hoặc nút Thêm">
+                    <button type="button" id="addCourseBtn" style="width: auto; padding: 0 20px; background-color: var(--success-color);">Thêm</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="registration-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Lớp</th>
+                            <th>Trạng thái</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="registration-list"></tbody>
+                </table>
+            </div>
+            <div class="progress-bar-container" id="progressBarContainer">
+                <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <button id="submitAllBtn" style="margin-top: 20px; background-color: var(--warning-color); color: var(--text-color);"><div class="spinner"></div><span>Đăng ký tuần tự các lớp trong danh sách!</span></button>
         </div>
     </div>
-    <div id="toast-container" class="toast-container"></div>
+
+    <template id="registration-row-template">
+        <tr>
+            <td class="course-id-cell"></td>
+            <td class="status-cell">Đang chờ...</td>
+            <td><button class="remove-row-btn" style="width: auto; padding: 5px 10px; font-size: 12px; background-color: var(--error-color); margin-top:0;">Xóa</button></td>
+        </tr>
+    </template>
 
     <script>
-        // --- DOM Elements ---
-        const views = document.querySelectorAll('.view');
-        const steps = document.querySelectorAll('.step');
-        const toastContainer = document.getElementById('toast-container');
-        const themeToggle = document.getElementById('theme-toggle');
+        const loginForm = document.getElementById('loginForm');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const addCourseBtn = document.getElementById('addCourseBtn');
+        const newCourseIdInput = document.getElementById('newCourseId');
+        const registrationList = document.getElementById('registration-list');
+        const rowTemplate = document.getElementById('registration-row-template');
+        const submitAllBtn = document.getElementById('submitAllBtn');
+        const themeToggles = document.querySelectorAll('#theme-toggle, .theme-toggle-main');
         const passwordInput = document.getElementById('password');
         const passwordToggle = document.getElementById('password-toggle');
+        const savedCoursesSelect = document.getElementById('savedCourses');
+        const deleteCourseBtn = document.getElementById('deleteCourseBtn');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBarFill = document.getElementById('progressBarFill');
 
-        // --- Helper Functions ---
+        let courseListData = [];
+
         const switchView = (viewId) => {
-            views.forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             updateStepIndicator(viewId);
         };
@@ -414,60 +458,72 @@
         const toggleButtonLoading = (btn, isLoading) => {
             btn.disabled = isLoading;
             const spinner = btn.querySelector('.spinner');
-            const btnText = btn.querySelector('.btn-text');
-            if (spinner) spinner.style.display = isLoading ? 'block' : 'none';
-            if (btnText) btnText.style.display = isLoading ? 'block' : 'none'; // Sửa lại để text luôn hiện
-        };
-
-        const showToast = (message, type = 'success') => {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            toastContainer.appendChild(toast);
-            setTimeout(() => {
-                toast.style.animation = 'slideDown 0.5s forwards';
-                setTimeout(() => toast.remove(), 500);
-            }, 5000);
+            if (spinner) spinner.style.display = isLoading ? 'inline-block' : 'none';
         };
 
         const updateStepIndicator = (activeViewId) => {
+            const steps = document.querySelectorAll('.step');
             let activeStep = 1;
-            if (activeViewId === 'course-view') activeStep = 2;
+            if (activeViewId === 'multi-course-view') activeStep = 2;
 
             steps.forEach((step, index) => {
                 step.classList.remove('active', 'completed');
-                if (index < activeStep - 1) {
-                    step.classList.add('completed');
-                } else if (index === activeStep - 1) {
-                    step.classList.add('active');
-                }
+                if (index < activeStep - 1) step.classList.add('completed');
+                else if (index === activeStep - 1) step.classList.add('active');
             });
         };
 
-        // --- Feature: Dark Mode ---
         const applyTheme = (theme) => {
-            document.body.setAttribute('data-theme', theme);
-            themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+            document.documentElement.setAttribute('data-theme', theme);
+            themeToggles.forEach(toggle => toggle.textContent = theme === 'dark' ? '🌙' : '☀️');
             localStorage.setItem('theme', theme);
         };
-        themeToggle.addEventListener('click', () => {
-            const newTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        themeToggles.forEach(toggle => toggle.addEventListener('click', () => {
+            const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             applyTheme(newTheme);
-        });
+        }));
 
-        // --- Feature: Show/Hide Password ---
         passwordToggle.addEventListener('click', () => {
             const isPassword = passwordInput.type === 'password';
             passwordInput.type = isPassword ? 'text' : 'password';
             passwordToggle.textContent = isPassword ? '🙈' : '👁️';
         });
 
-        // --- Main Logic ---
-        document.getElementById('loginForm').addEventListener('submit', async(e) => {
+        const renderCourseList = () => {
+            registrationList.innerHTML = '';
+            courseListData.forEach(course => {
+                const newRow = rowTemplate.content.cloneNode(true);
+                newRow.querySelector('.course-id-cell').textContent = course.id;
+                const tr = newRow.querySelector('tr');
+                tr.dataset.courseId = course.id;
+                tr.querySelector('.remove-row-btn').addEventListener('click', () => removeCourseFromList(course.id));
+                registrationList.appendChild(newRow);
+            });
+        };
+
+        const addCourseToList = () => {
+            const courseId = newCourseIdInput.value.trim();
+            if (courseId && !courseListData.find(c => c.id === courseId)) {
+                courseListData.push({
+                    id: courseId
+                });
+                renderCourseList();
+                newCourseIdInput.value = '';
+                localStorage.setItem('courseList', JSON.stringify(courseListData.map(c => c.id)));
+            }
+            newCourseIdInput.focus();
+        };
+
+        const removeCourseFromList = (courseId) => {
+            courseListData = courseListData.filter(c => c.id !== courseId);
+            renderCourseList();
+            localStorage.setItem('courseList', JSON.stringify(courseListData.map(c => c.id)));
+        };
+
+        loginForm.addEventListener('submit', async(e) => {
             e.preventDefault();
             const btn = document.getElementById('loginButton');
             toggleButtonLoading(btn, true);
-
             const response = await fetch('/login', {
                 method: 'POST',
                 headers: {
@@ -482,46 +538,81 @@
             });
             const result = await response.json();
             toggleButtonLoading(btn, false);
-
             if (result.success) {
-                showToast(`Đăng nhập thành công!`);
-                document.getElementById('welcome-message').textContent = `Chào ${result.student_name}!`;
-                switchView('course-view');
+                welcomeMessage.textContent = `Chào ${result.student_name}!`;
+                switchView('multi-course-view');
             } else {
-                showToast(`Lỗi: ${result.message}`, 'error');
+                alert(`Lỗi: ${result.message}`);
             }
         });
 
-        document.getElementById('courseForm').addEventListener('submit', async(e) => {
-            e.preventDefault();
-            const courseId = document.getElementById('courseId').value.trim();
-            if (!courseId) return showToast('Vui lòng nhập mã lớp học phần.', 'error');
-
-            const btn = document.getElementById('registerButton');
-            toggleButtonLoading(btn, true);
-            showToast('Đang gửi yêu cầu, quá trình này có thể mất 10-20 giây...', 'success');
-
-            const response = await fetch('/full-auto-register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    courseId: courseId
-                })
-            });
-            const result = await response.json();
-            toggleButtonLoading(btn, false);
-
-            const finalMessage = result.message || (result.success ? 'Thao tác thành công!' : 'Đã có lỗi xảy ra.');
-            showToast(finalMessage, result.success ? 'success' : 'error');
+        addCourseBtn.addEventListener('click', addCourseToList);
+        newCourseIdInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCourseToList();
+            }
         });
 
-        // --- Initialization ---
+        submitAllBtn.addEventListener('click', async() => {
+            if (courseListData.length === 0) return alert('Danh sách rỗng, vui lòng thêm lớp cần đăng ký.');
+            toggleButtonLoading(submitAllBtn, true);
+
+            progressBarContainer.style.display = 'block';
+            progressBarFill.style.width = '0%';
+
+            let processedCount = 0;
+            const totalCourses = courseListData.length;
+
+            for (const course of courseListData) {
+                const row = registrationList.querySelector(`tr[data-course-id="${course.id}"]`);
+                const statusCell = row.querySelector('.status-cell');
+
+                if (statusCell.classList.contains('success')) {
+                    processedCount++;
+                    progressBarFill.style.width = `${(processedCount / totalCourses) * 100}%`;
+                    continue;
+                }
+
+                statusCell.innerHTML = '<div class="spinner"></div><span>Đang xử lý...</span>';
+                statusCell.className = 'status-cell';
+
+                try {
+                    const response = await fetch('/full-auto-register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            courseId: course.id
+                        })
+                    });
+                    const result = await response.json();
+                    statusCell.textContent = result.message;
+                    statusCell.classList.toggle('success', result.success);
+                    statusCell.classList.toggle('error', !result.success);
+                } catch (error) {
+                    statusCell.textContent = "Lỗi kết nối";
+                    statusCell.classList.add('error');
+                }
+
+                processedCount++;
+                progressBarFill.style.width = `${(processedCount / totalCourses) * 100}%`;
+
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            toggleButtonLoading(submitAllBtn, false);
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
             applyTheme(savedTheme);
-            updateStepIndicator('login-view');
+            const savedCourses = JSON.parse(localStorage.getItem('courseList')) || [];
+            courseListData = savedCourses.map(id => ({
+                id
+            }));
+            renderCourseList();
+            switchView('login-view');
         });
     </script>
 </body>
